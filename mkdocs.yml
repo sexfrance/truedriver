@@ -90,7 +90,7 @@ plugins:
             show_root_heading: false
             show_root_toc_entry: false
 site_name: truedriver
-site_url: https://truedriver.dev
+site_url: https://zendriver.dev
 repo_url: https://github.com/cdpdriver/truedriver
 repo_name: cdpdriver/truedriver
 theme:

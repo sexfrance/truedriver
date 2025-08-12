@@ -43,7 +43,7 @@ import truedriver as zd
 
 async def main():
     browser = await zd.start()
-    page = await browser.get('https://truedriver.dev/')
+    page = await browser.get('https://zendriver.dev/')
 
     elems = await page.select_all('*[src]')
 
