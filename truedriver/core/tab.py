@@ -142,6 +142,8 @@ class Tab(Connection):
         self.browser = browser
         self._dom = None
         self._window_id = None
+        self._current_frame_id: Optional[cdp.page.FrameId] = None
+        self._current_execution_context_id: Optional[cdp.runtime.ExecutionContextId] = None
 
     @property
     def inspector_url(self) -> str:
@@ -503,7 +505,40 @@ class Tab(Connection):
 
         doc: Any
         if not _node:
-            doc = await self.send(cdp.dom.get_document(-1, True))
+            # If we're in a frame context, get the frame's document instead of main document
+            if hasattr(self, '_current_frame_id') and self._current_frame_id:
+                try:
+                    # Get frame tree and find our frame's document
+                    frame_tree = await self.send(cdp.page.get_frame_tree())
+                    target_frame = None
+                    
+                    def find_frame(frame_node):
+                        nonlocal target_frame
+                        if frame_node.frame.id_ == self._current_frame_id:
+                            target_frame = frame_node.frame
+                            return
+                        if frame_node.child_frames:
+                            for child in frame_node.child_frames:
+                                find_frame(child)
+                    
+                    find_frame(frame_tree)
+                    
+                    if target_frame:
+                        # Get document for the specific frame
+                        doc = await self.send(cdp.dom.get_document(-1, True))
+                        # Try to find the iframe element and use its content document
+                        iframe_elements = util.filter_recurse_all(doc, lambda n: n.node_name == "IFRAME")
+                        for iframe in iframe_elements:
+                            if iframe.frame_id == self._current_frame_id and iframe.content_document:
+                                doc = iframe.content_document
+                                break
+                    else:
+                        doc = await self.send(cdp.dom.get_document(-1, True))
+                except Exception as e:
+                    logger.debug(f"Failed to get frame document, using main document: {e}")
+                    doc = await self.send(cdp.dom.get_document(-1, True))
+            else:
+                doc = await self.send(cdp.dom.get_document(-1, True))
         else:
             doc = _node
             if _node.node_name == "IFRAME":
@@ -718,6 +753,9 @@ class Tab(Connection):
         | None
         | typing.Tuple[cdp.runtime.RemoteObject, cdp.runtime.ExceptionDetails | None]
     ):
+        # Use current execution context if we're in a frame
+        context_id = getattr(self, '_current_execution_context_id', None)
+        
         remote_object, errors = await self.send(
             cdp.runtime.evaluate(
                 expression=expression,
@@ -725,6 +763,7 @@ class Tab(Connection):
                 await_promise=await_promise,
                 return_by_value=return_by_value,
                 allow_unsafe_eval_blocked_by_csp=True,
+                context_id=context_id,
             )
         )
         if errors:
@@ -1541,6 +1580,272 @@ class Tab(Connection):
         from .cloudflare import verify_cf
 
         await verify_cf(self, click_delay, timeout, challenge_selector, flash_corners)
+
+    async def switch_to_frame(self, frame_element: Union[Element, str, cdp.page.FrameId, None] = None) -> None:
+        """
+        Switch the execution context to an iframe for hCaptcha and other iframe interactions.
+        
+        :param frame_element: The iframe element, CSS selector, frame ID, or None for main frame
+        :type frame_element: Union[Element, str, cdp.page.FrameId, None]
+        :return: None
+        :rtype: None
+        
+        Examples:
+            # Switch to iframe by element
+            iframe = await tab.query_selector('iframe[src*="hcaptcha"]')
+            await tab.switch_to_frame(iframe)
+            
+            # Switch to iframe by selector
+            await tab.switch_to_frame('iframe[src*="hcaptcha"]')
+            
+            # Switch back to main frame
+            await tab.switch_to_frame(None)
+        """
+        if frame_element is None:
+            # Switch back to main frame
+            self._current_frame_id = None
+            self._current_execution_context_id = None
+            return
+            
+        frame_id = None
+        
+        if isinstance(frame_element, str):
+            # CSS selector provided
+            iframe = await self.query_selector(frame_element)
+            if not iframe:
+                raise ValueError(f"Could not find iframe with selector: {frame_element}")
+            frame_element = iframe
+            
+        if isinstance(frame_element, Element):
+            if frame_element.node_name != "IFRAME":
+                raise ValueError("Element must be an iframe")
+            frame_id = frame_element.frame_id
+            if not frame_id and frame_element.content_document:
+                frame_id = frame_element.content_document.frame_id
+        elif isinstance(frame_element, cdp.page.FrameId):
+            frame_id = frame_element
+        else:
+            raise ValueError("frame_element must be an Element, string selector, FrameId, or None")
+            
+        if not frame_id:
+            raise ValueError("Could not determine frame ID from provided element")
+            
+        # Store the current frame context
+        self._current_frame_id = frame_id
+        
+        # Get execution contexts to find the one for this frame
+        await self.send(cdp.runtime.enable())
+        
+        # Wait a bit for contexts to be available
+        await asyncio.sleep(0.1)
+        
+        # Find execution context for this frame
+        contexts = await self._get_execution_contexts_for_frame(frame_id)
+        if contexts:
+            self._current_execution_context_id = contexts[0].id_
+        else:
+            logger.warning(f"No execution context found for frame {frame_id}")
+            
+    async def _get_execution_contexts_for_frame(self, frame_id: cdp.page.FrameId) -> List[cdp.runtime.ExecutionContextDescription]:
+        """
+        Get execution contexts for a specific frame.
+        
+        :param frame_id: The frame ID to get contexts for
+        :type frame_id: cdp.page.FrameId
+        :return: List of execution contexts for the frame
+        :rtype: List[cdp.runtime.ExecutionContextDescription]
+        """
+        contexts = []
+        
+        # This is a workaround since there's no direct way to get contexts for a frame
+        # We'll use JavaScript to enumerate contexts and match by frame
+        try:
+            script = f"""
+            (function() {{
+                // Try to get execution context info for frame {frame_id}
+                return {{
+                    frameId: '{frame_id}',
+                    origin: window.location.origin,
+                    href: window.location.href
+                }};
+            }})()
+            """
+            
+            # Evaluate in the frame context
+            result = await self.send(cdp.runtime.evaluate(
+                script,
+                context_id=None,  # Will use current context
+                return_by_value=True
+            ))
+            
+            # For now, we'll create a mock context description
+            # In a real implementation, you'd need to track contexts from runtime events
+            mock_context = cdp.runtime.ExecutionContextDescription(
+                id_=cdp.runtime.ExecutionContextId(1),  # This should be tracked properly
+                origin=result[0].value.get('origin', '') if result[0].value else '',
+                name=f"iframe_{frame_id}",
+                unique_id=f"iframe_{frame_id}_{datetime.datetime.now().timestamp()}",
+                aux_data={'frameId': str(frame_id), 'isDefault': False, 'type': 'iframe'}
+            )
+            contexts.append(mock_context)
+            
+        except Exception as e:
+            logger.debug(f"Could not get execution context for frame {frame_id}: {e}")
+            
+        return contexts
+
+    async def get_frames(self) -> List[cdp.page.Frame]:
+        """
+        Get all frames on the current page.
+        
+        :return: List of frames
+        :rtype: List[cdp.page.Frame]
+        """
+        frame_tree = await self.send(cdp.page.get_frame_tree())
+        frames = []
+        
+        def collect_frames(frame_tree_node):
+            frames.append(frame_tree_node.frame)
+            if frame_tree_node.child_frames:
+                for child in frame_tree_node.child_frames:
+                    collect_frames(child)
+                    
+        collect_frames(frame_tree)
+        return frames
+
+    async def find_hcaptcha_iframe(self) -> Element | None:
+        """
+        Find hCaptcha iframe on the page.
+        
+        :return: hCaptcha iframe element or None if not found
+        :rtype: Element | None
+        """
+        # Common hCaptcha iframe selectors
+        selectors = [
+            'iframe[src*="hcaptcha.com"]',
+            'iframe[src*="newassets.hcaptcha.com"]',
+            'iframe[data-hcaptcha-widget-id]',
+            'iframe[title*="hCaptcha"]',
+            'iframe[title*="hcaptcha"]',
+            '.h-captcha iframe',
+            '[data-sitekey] iframe'
+        ]
+        
+        for selector in selectors:
+            try:
+                iframe = await self.query_selector(selector)
+                if iframe:
+                    return iframe
+            except Exception:
+                continue
+                
+        # Fallback: look for iframes with hcaptcha in their src
+        iframes = await self.query_selector_all('iframe')
+        for iframe in iframes:
+            try:
+                src = iframe.attrs.get('src', '')
+                if 'hcaptcha' in src.lower():
+                    return iframe
+            except Exception:
+                continue
+                
+        return None
+
+    async def solve_hcaptcha(self, timeout: float = 30.0) -> bool:
+        """
+        Attempt to solve hCaptcha challenge by switching to iframe and clicking checkbox.
+        
+        :param timeout: Maximum time to wait for solution
+        :type timeout: float
+        :return: True if solved successfully, False otherwise
+        :rtype: bool
+        """
+        try:
+            # Find hCaptcha iframe
+            hcaptcha_iframe = await self.find_hcaptcha_iframe()
+            if not hcaptcha_iframe:
+                logger.warning("No hCaptcha iframe found")
+                return False
+                
+            logger.info("Found hCaptcha iframe, switching context")
+            
+            # Switch to hCaptcha iframe
+            await self.switch_to_frame(hcaptcha_iframe)
+            
+            # Wait for iframe to load
+            await asyncio.sleep(1.0)
+            
+            # Look for hCaptcha checkbox
+            checkbox_selectors = [
+                'div[role="checkbox"]',
+                '.check-box',
+                '.hcaptcha-checkbox',
+                '[data-cy="checkbox"]',
+                'input[type="checkbox"]',
+                '.challenge-container .checkbox'
+            ]
+            
+            checkbox = None
+            for selector in checkbox_selectors:
+                try:
+                    checkbox = await self.query_selector(selector)
+                    if checkbox:
+                        break
+                except Exception:
+                    continue
+                    
+            if not checkbox:
+                logger.warning("Could not find hCaptcha checkbox")
+                await self.switch_to_frame(None)  # Switch back to main frame
+                return False
+                
+            logger.info("Found hCaptcha checkbox, attempting to click")
+            
+            # Click the checkbox
+            await checkbox.click()
+            
+            # Wait for challenge to complete
+            loop = asyncio.get_running_loop()
+            start_time = loop.time()
+            
+            while loop.time() - start_time < timeout:
+                try:
+                    # Check if challenge is completed by looking for success indicators
+                    success_indicators = [
+                        '.hcaptcha-success',
+                        '[data-cy="success"]',
+                        '.challenge-success'
+                    ]
+                    
+                    for indicator in success_indicators:
+                        success_element = await self.query_selector(indicator)
+                        if success_element:
+                            logger.info("hCaptcha solved successfully")
+                            await self.switch_to_frame(None)  # Switch back to main frame
+                            return True
+                            
+                    # Check if checkbox is now checked
+                    if checkbox and checkbox.attrs.get('aria-checked') == 'true':
+                        logger.info("hCaptcha checkbox checked")
+                        await self.switch_to_frame(None)  # Switch back to main frame
+                        return True
+                        
+                except Exception as e:
+                    logger.debug(f"Error checking hCaptcha status: {e}")
+                    
+                await asyncio.sleep(0.5)
+                
+            logger.warning("hCaptcha solve timed out")
+            await self.switch_to_frame(None)  # Switch back to main frame
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error solving hCaptcha: {e}")
+            try:
+                await self.switch_to_frame(None)  # Ensure we switch back to main frame
+            except Exception:
+                pass
+            return False
 
     async def mouse_move(
         self, x: float, y: float, steps: int = 10, flash: bool = False

@@ -20,7 +20,8 @@ Truedriver is a blazing fast, async-first, undetectable webscraping/web automati
 
 - **Undetectable** - Truedriver uses the Chrome Devtools Protocol instead of Selenium/WebDriver, making it (almost) impossible to detect
 - **Blazing fast** - Chrome Devtools Protocol is _fast_, much faster than previous Selenium/WebDriver solutions. CDP combined with an async Python API makes Truedriver highly performant.
-- **Feature complete and easy to use** - Packed with allowing you to get up and running in just a few lines of code.
+- **Feature complete and easy to use** - Packed with features including iframe support for hCaptcha, reCaptcha and other challenges, allowing you to get up and running in just a few lines of code.
+- **iframe/frame switching support** - Seamlessly switch between iframe contexts for interacting with embedded content like hCaptcha, reCaptcha, and other iframe-based challenges.
 - **First-class Docker support** - Traditionally, browser automation has been incredibly difficult to package with Docker, especially if you want to run real, GPU-accelerated Chrome (not headless). Now, deploying with Docker is easier than ever using the officially supported [truedriver-docker project template](https://github.com/cdpdriver/truedriver-docker).
 - **Automatic cookie and profile management** - By default, uses fresh profile on each run, cleaning up on exit. Or, save and load cookies to a file to avoid repeating tedious login steps.
 - **Smart element lookup** - Find elements selector or text, including iframe content. This could also be used as wait condition for a element to appear, since it will retry for the duration of `timeout` until found. Single element lookup by text using `tab.find()` accepts a `best_match flag`, which will not naively return the first match, but will match candidates by closest matching text length.
@@ -54,6 +55,52 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+### iframe Support for hCaptcha and Other Challenges
+
+Truedriver includes built-in support for interacting with iframes, making it easy to solve hCaptcha, reCaptcha, and other iframe-based challenges:
+
+```python
+import asyncio
+import truedriver as zd
+
+async def solve_hcaptcha():
+    browser = await zd.start()
+    tab = await browser.get("https://accounts.hcaptcha.com/demo")
+    
+    # Built-in hCaptcha solver
+    success = await tab.solve_hcaptcha(timeout=30.0)
+    if success:
+        print("✓ hCaptcha solved!")
+    
+    # Or manually switch to iframe and interact
+    hcaptcha_iframe = await tab.find_hcaptcha_iframe()
+    if hcaptcha_iframe:
+        await tab.switch_to_frame(hcaptcha_iframe)
+        checkbox = await tab.query_selector('div[role="checkbox"]')
+        if checkbox:
+            await checkbox.click()
+        await tab.switch_to_frame(None)  # Switch back to main frame
+    
+    await browser.stop()
+
+# Generic iframe switching
+async def iframe_example():
+    browser = await zd.start()
+    tab = await browser.get("https://example.com")
+    
+    # Switch to iframe by CSS selector
+    await tab.switch_to_frame('iframe[src*="target"]')
+    
+    # Work within iframe context
+    element = await tab.query_selector('.element-in-iframe')
+    await element.click()
+    
+    # Switch back to main frame
+    await tab.switch_to_frame(None)
+    
+    await browser.stop()
 ```
 
 Check out the [Quickstart](https://zendriver.dev/quickstart/) for more information and examples.

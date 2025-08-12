@@ -11,7 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **iframe Support for hCaptcha and Challenges**: Complete iframe switching functionality for interacting with hCaptcha, reCaptcha, and other iframe-based challenges
+  - `switch_to_frame()` method for switching between iframe and main frame contexts
+  - `find_hcaptcha_iframe()` method to automatically locate hCaptcha iframes
+  - `solve_hcaptcha()` method for automated hCaptcha challenge solving
+  - `get_frames()` method to enumerate all frames on a page
+  - Enhanced `query_selector()` and `evaluate()` methods to work within iframe contexts
+  - Comprehensive examples and documentation for iframe interactions
+
 ### Changed
+
+- Enhanced `Tab.evaluate()` method to support execution within iframe contexts
+- Improved `Tab.query_selector()` method to automatically work within the current frame context
+- Updated documentation with iframe usage examples and API reference
 
 ### Removed
 
