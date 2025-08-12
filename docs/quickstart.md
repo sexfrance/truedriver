@@ -182,3 +182,101 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+## Working with iframes
+
+Truedriver provides comprehensive support for interacting with iframe content. This is particularly useful for embedded widgets like captchas, forms, or third-party content.
+
+### Basic iframe switching
+
+```python
+import asyncio
+import truedriver as zd
+
+async def main():
+    browser = await zd.start()
+    tab = await browser.get('https://example.com/page-with-iframes')
+    
+    # Method 1: Find iframe by URL pattern
+    iframe = await tab.find_frame_by_url(r'.*captcha\.com.*')
+    if iframe:
+        await tab.switch_to_frame(iframe)
+        # Now interact with elements inside the iframe
+        button = await tab.find('button')
+        await button.click()
+        # Switch back to main frame
+        await tab.switch_to_main_frame()
+    
+    # Method 2: Find iframe by name
+    iframe = await tab.find_frame_by_name('captcha-frame')
+    if iframe:
+        await tab.switch_to_frame(iframe)
+        # Interact with iframe content
+        await tab.switch_to_main_frame()
+    
+    # Method 3: Find iframe element and switch to it
+    iframe_element = await tab.find('iframe[src*="captcha"]')
+    if iframe_element:
+        await tab.switch_to_frame(iframe_element)
+        # Interact with iframe content
+        await tab.switch_to_main_frame()
+    
+    # Method 4: Switch by index (useful for multiple iframes)
+    frames = await tab.get_frames()
+    if len(frames) > 1:
+        await tab.switch_to_frame_by_index(1)  # Switch to second frame
+        # Interact with iframe content
+        await tab.switch_to_main_frame()
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+### Real-world example: Working with embedded forms
+
+```python
+import asyncio
+import truedriver as zd
+
+async def handle_embedded_form():
+    browser = await zd.start()
+    tab = await browser.get('https://example.com/contact')
+    
+    # Find the embedded form iframe
+    form_iframe = await tab.find_frame_by_url(r'.*forms\.example\.com.*')
+    
+    if form_iframe:
+        # Switch to the form iframe
+        await tab.switch_to_frame(form_iframe)
+        
+        # Fill out the form inside the iframe
+        name_field = await tab.find('input[name="name"]')
+        await name_field.send_keys('John Doe')
+        
+        email_field = await tab.find('input[name="email"]')
+        await email_field.send_keys('john@example.com')
+        
+        submit_button = await tab.find('button[type="submit"]')
+        await submit_button.click()
+        
+        # Wait for submission confirmation
+        await tab.find('Success', timeout=10)
+        
+        # Switch back to main frame
+        await tab.switch_to_main_frame()
+        
+        print('Form submitted successfully')
+    
+    await browser.stop()
+
+if __name__ == '__main__':
+    asyncio.run(handle_embedded_form())
+```
+
+### Tips for iframe interaction
+
+- Always switch back to the main frame when done with iframe content
+- Use `get_current_frame()` to check which frame you're currently in
+- Use `get_frames()` to list all available frames for debugging
+- Frame switching affects all subsequent element operations (find, click, etc.)
+- Some iframes may take time to load - use appropriate timeouts

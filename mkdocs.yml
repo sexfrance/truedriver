@@ -14,7 +14,6 @@ nav:
   - Documentation:
       - Introduction: index.md
       - Quickstart: quickstart.md
-      - iframe Support: iframe-support.md
   - Tutorials:
       - About these Tutorials: tutorials/index.md
       - Tutorials:
@@ -22,7 +21,6 @@ nav:
           - Creating accounts: tutorials/account-creation.md
           - Reading API responses: tutorials/api-responses.md
           - Playing with CDP: tutorials/cdp.md
-          - hCaptcha and iframe Support: tutorials/hcaptcha-tutorial.md
   - Reference:
       - cdp:
           - accessibility: reference/cdp/accessibility.md

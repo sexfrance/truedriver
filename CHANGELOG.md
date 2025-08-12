@@ -11,19 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **iframe Support for hCaptcha and Challenges**: Complete iframe switching functionality for interacting with hCaptcha, reCaptcha, and other iframe-based challenges
-  - `switch_to_frame()` method for switching between iframe and main frame contexts
-  - `find_hcaptcha_iframe()` method to automatically locate hCaptcha iframes
-  - `solve_hcaptcha()` method for automated hCaptcha challenge solving
-  - `get_frames()` method to enumerate all frames on a page
-  - Enhanced `query_selector()` and `evaluate()` methods to work within iframe contexts
-  - Comprehensive examples and documentation for iframe interactions
+- **Full iframe support** - Added comprehensive iframe switching functionality to interact with embedded content
+  - `Tab.get_frames()` - Get all frames in the current page
+  - `Tab.find_frame_by_url(pattern)` - Find frames by URL pattern (supports regex)
+  - `Tab.find_frame_by_name(name)` - Find frames by name attribute
+  - `Tab.switch_to_frame(frame)` - Switch to a specific frame (accepts Frame object, name, URL pattern, or iframe Element)
+  - `Tab.switch_to_main_frame()` - Switch back to the main frame
+  - `Tab.switch_to_frame_by_index(index)` - Switch to frame by index
+  - `Tab.get_current_frame()` - Get the currently active frame
+  - Frame-aware element operations - All element finding and interaction methods now work within the current frame context
+  - Modified `Tab.evaluate()` to execute JavaScript in the current frame context
+  - Updated DOM querying methods to work correctly with frame switching
 
 ### Changed
-
-- Enhanced `Tab.evaluate()` method to support execution within iframe contexts
-- Improved `Tab.query_selector()` method to automatically work within the current frame context
-- Updated documentation with iframe usage examples and API reference
 
 ### Removed
 
