@@ -4,12 +4,25 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      test_pypi:
+        description: 'Publish to Test PyPI instead of main PyPI'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: release
+    
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -23,8 +36,37 @@ jobs:
       - name: Build package
         run: python -m build
       
+      - name: Check build artifacts
+        run: |
+          ls -la dist/
+          echo "Built files:"
+          for file in dist/*; do echo "  $file"; done
+      
+      - name: Publish to Test PyPI
+        if: ${{ github.event.inputs.test_pypi == 'true' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: |
+          echo "Publishing to Test PyPI..."
+          twine upload --repository testpypi dist/*
+      
       - name: Publish to PyPI
+        if: ${{ github.event.inputs.test_pypi != 'true' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        run: |
+          echo "Publishing to PyPI..."
+          twine upload dist/*
+      
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Package Published Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** truedriver" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** ${{ github.event.inputs.test_pypi == 'true' && 'Test PyPI' || 'PyPI' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Built artifacts:" >> $GITHUB_STEP_SUMMARY
+          for file in dist/*; do echo "- \`$(basename $file)\`" >> $GITHUB_STEP_SUMMARY; done
