@@ -1,10 +1,11 @@
 # Truedriver ✌️
 
-[![License](https://img.shields.io/github/license/cdpdriver/truedriver)](LICENSE)
+[![License](https://img.shields.io/github/license/sexfrance/truedriver)](LICENSE)
 [![Pypi Version](https://img.shields.io/pypi/v/truedriver)](https://pypi.org/project/truedriver/)
-[![Issues](https://img.shields.io/github/issues/cdpdriver/truedriver)]()
-[![Pull Requests](https://img.shields.io/github/issues-pr/cdpdriver/truedriver)]()
-[![codecov](https://codecov.io/github/cdpdriver/truedriver/branch/main/graph/badge.svg?token=F7K641TYFZ)](https://codecov.io/github/cdpdriver/truedriver)
+[![Issues](https://img.shields.io/github/issues/sexfrance/truedriver)]()
+[![Pull Requests](https://img.shields.io/github/issues-pr/sexfrance/truedriver)]()
+[![codecov](https://codecov.io/github/sexfrance/truedriver/branch/main/graph/badge.svg?token=F7K641TYFZ)](https://codecov.io/github/sexfrance/truedriver)
+[![Downloads](https://img.shields.io/pypi/dm/logmagix?style=for-the-badge&labelColor=black&color=f429ff&logo=IOTA)()]
 
 > This package is a fork of [`cdpdriver/zendriver`](https://github.com/cdpdriver/zendriver/), which itself is a fork of [`ultrafunkamsterdam/nodriver`](https://github.com/ultrafunkamsterdam/nodriver/), created to add new features, compile unmerged bugfixes, and increase community engagement.
 
