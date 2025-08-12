@@ -23,6 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modified `Tab.evaluate()` to execute JavaScript in the current frame context
   - Updated DOM querying methods to work correctly with frame switching
 
+- **Simple proxy support** - Added easy-to-use proxy functionality with multiple configuration formats
+  - `proxy` parameter in `start()` function and `Config` class
+  - Support for simple format: `"ip:port"` or `"http://ip:port"`
+  - Support for authenticated format: `"user:pass@ip:port"` or `"http://user:pass@ip:port"`
+  - Support for dict format: `{"server": "ip:port", "username": "user", "password": "pass"}`
+  - URL-based authentication (like Playwright) for maximum compatibility
+  - Works reliably with Chrome, Brave, and Edge browsers
+  - No complex CDP authentication handlers required
+
+- **Enhanced undetection** - Improved stealth capabilities and bot detection evasion
+  - Better fingerprint randomization
+  - Enhanced user agent handling
+  - Improved browser argument defaults for stealth
+  - Reduced detection signatures
+
 ### Changed
 
 ### Removed

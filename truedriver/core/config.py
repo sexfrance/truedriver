@@ -46,6 +46,7 @@ class Config:
         browser_connection_timeout: float = 0.25,
         browser_connection_max_tries: int = 10,
         user_agent: Optional[str] = None,
+        proxy: Optional[Union[str, dict]] = None,
         **kwargs: Any,
     ):
         """
@@ -68,6 +69,11 @@ class Config:
         :param autodiscover_targets: use autodiscovery of targets
         :param lang: language string to use other than the default "en-US,en;q=0.9"
         :param user_agent: custom user-agent string
+        :param proxy: proxy configuration - can be:
+                     - Simple string: "ip:port" or "http://ip:port"
+                     - With auth string: "user:pass@ip:port" or "http://user:pass@ip:port"
+                     - Dict with auth: {"server": "ip:port", "username": "user", "password": "pass"}
+                     - Dict simple: {"server": "ip:port"}
         :param expert: when set to True, enabled "expert" mode.
                This conveys, the inclusion of parameters: --disable-web-security ----disable-site-isolation-trials,
                as well as some scripts and patching useful for debugging (for example, ensuring shadow-root is always in "open" mode)
@@ -82,6 +88,7 @@ class Config:
         :type sandbox: bool
         :type lang: str
         :type user_agent: str
+        :type proxy: str | dict
         :type kwargs: dict
         """
 
@@ -106,6 +113,7 @@ class Config:
         self.host = host
         self.port = port
         self.expert = expert
+        self.proxy = proxy
         self._extensions: list[PathLike] = []
 
         # when using posix-ish operating system and running as root
@@ -227,7 +235,95 @@ class Config:
             args.append("--remote-debugging-host=%s" % self.host)
         if self.port:
             args.append("--remote-debugging-port=%s" % self.port)
+        if self.proxy:
+            proxy_server = self._parse_proxy_server()
+            if proxy_server:
+                args.append(f"--proxy-server={proxy_server}")
         return args
+
+    def _parse_proxy_server(self) -> Optional[str]:
+        """
+        Parse proxy configuration and return proxy server string for Chrome.
+        Handles both simple proxies and authenticated proxies via URL encoding.
+        
+        Returns:
+            str: Proxy server string in format "protocol://host:port" or 
+                 "protocol://username:password@host:port" or None
+        """
+        if not self.proxy:
+            return None
+            
+        if isinstance(self.proxy, str):
+            # Simple string format: "ip:port", "user:pass@ip:port", or "http://ip:port"
+            proxy_str = self.proxy.strip()
+            if not proxy_str:
+                return None
+                
+            # If it already has a protocol, use as-is
+            if "://" in proxy_str:
+                return proxy_str
+            
+            # If it has @ symbol, it's user:pass@host:port format
+            if "@" in proxy_str:
+                return f"http://{proxy_str}"
+            
+            # Simple host:port format
+            return f"http://{proxy_str}"
+            
+        elif isinstance(self.proxy, dict):
+            # Dict format: {"server": "ip:port", "username": "user", "password": "pass"}
+            server = self.proxy.get("server", "").strip()
+            username = self.proxy.get("username", "").strip()
+            password = self.proxy.get("password", "").strip()
+            
+            if not server:
+                logger.warning("Proxy dict missing 'server' key")
+                return None
+            
+            # Clean server (remove protocol if present)
+            if "://" in server:
+                protocol, server = server.split("://", 1)
+            else:
+                protocol = "http"
+            
+            # Build proxy URL with authentication if provided
+            if username and password:
+                return f"{protocol}://{username}:{password}@{server}"
+            else:
+                return f"{protocol}://{server}"
+        else:
+            logger.warning(f"Invalid proxy format: {type(self.proxy)}")
+            return None
+
+    def get_proxy_auth(self) -> Optional[dict]:
+        """
+        Get proxy authentication credentials if available.
+        Note: With URL-encoded auth, this is mainly for compatibility.
+        
+        Returns:
+            dict: {"username": "user", "password": "pass"} or None
+        """
+        if isinstance(self.proxy, dict):
+            username = self.proxy.get("username")
+            password = self.proxy.get("password")
+            if username and password:
+                return {"username": username, "password": password}
+        elif isinstance(self.proxy, str) and "@" in self.proxy:
+            # Extract from user:pass@host:port format
+            try:
+                if "://" in self.proxy:
+                    _, rest = self.proxy.split("://", 1)
+                else:
+                    rest = self.proxy
+                
+                if "@" in rest:
+                    auth_part, _ = rest.split("@", 1)
+                    if ":" in auth_part:
+                        username, password = auth_part.split(":", 1)
+                        return {"username": username, "password": password}
+            except:
+                pass
+        return None
 
     def add_argument(self, arg: str) -> None:
         if any(

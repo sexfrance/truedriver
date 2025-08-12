@@ -6,8 +6,118 @@ To install, simply use `pip` (or your favorite package manager):
 
 ```sh
 pip install truedriver
-# or uv add truedriver, poetry add truedriver, etc.
+# or uv add truedriver, poetry add truedriver, etc.## Working with proxies
+
+Truedriver makes proxy usage simple with multiple configuration formats and automatic authentication handling.
+
+### Basic proxy usage
+
+```python
+import asyncio
+import truedriver as zd
+
+async def main():
+    # Simple proxy without authentication
+    browser = await zd.start(proxy="proxy.example.com:8080")
+    
+    # Or with protocol specified
+    browser = await zd.start(proxy="http://proxy.example.com:8080")
+    
+    tab = await browser.get('https://httpbin.org/ip')
+    print(await tab.get_content())  # Should show proxy IP
+    await browser.stop()
+
+if __name__ == '__main__':
+    asyncio.run(main())
 ```
+
+### Authenticated proxies
+
+```python
+import asyncio
+import truedriver as zd
+
+async def main():
+    # Method 1: String format with authentication
+    browser = await zd.start(proxy="username:password@proxy.example.com:8080")
+    
+    # Method 2: Dict format
+    proxy_config = {
+        "server": "proxy.example.com:8080",
+        "username": "myuser",
+        "password": "mypass"
+    }
+    browser = await zd.start(proxy=proxy_config)
+    
+    # Method 3: With protocol in string format
+    browser = await zd.start(proxy="http://username:password@proxy.example.com:8080")
+    
+    tab = await browser.get('https://httpbin.org/ip')
+    await browser.stop()
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+### Real-world proxy example
+
+```python
+import asyncio
+import random
+import truedriver as zd
+
+def get_random_proxy():
+    """Load a random proxy from file"""
+    try:
+        with open('proxies.txt', 'r') as f:
+            proxies = [line.strip() for line in f if line.strip()]
+            return random.choice(proxies) if proxies else None
+    except FileNotFoundError:
+        return None
+
+async def scrape_with_proxy():
+    # Get a random proxy
+    proxy = get_random_proxy()
+    
+    if proxy:
+        browser = await zd.start(
+            proxy=proxy,
+            headless=True,
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        )
+        print(f"Using proxy: {proxy}")
+    else:
+        browser = await zd.start(headless=True)
+        print("No proxy available, running direct")
+    
+    try:
+        # Check IP
+        tab = await browser.get('https://httpbin.org/ip')
+        ip_info = await tab.get_content()
+        print(f"Current IP: {ip_info}")
+        
+        # Scrape target site
+        tab = await browser.get('https://example.com')
+        content = await tab.get_content()
+        
+    finally:
+        await browser.stop()
+
+if __name__ == '__main__':
+    asyncio.run(scrape_with_proxy())
+```
+
+### Proxy formats supported
+
+- **Simple**: `"ip:port"`
+- **With protocol**: `"http://ip:port"` or `"socks5://ip:port"`
+- **With authentication**: `"user:pass@ip:port"`
+- **Full URL**: `"http://user:pass@ip:port"`
+- **Dict format**: `{"server": "ip:port", "username": "user", "password": "pass"}`
+
+### Working with iframes
+
+Truedriver provides comprehensive support for interacting with iframe content. This is particularly useful for embedded widgets like captchas, forms, or third-party content.``
 
 ## Basic usage
 

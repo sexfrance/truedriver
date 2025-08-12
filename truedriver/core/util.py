@@ -41,6 +41,7 @@ async def start(
     port: Optional[int] = None,
     expert: Optional[bool] = None,
     user_agent: Optional[str] = None,
+    proxy: Optional[Union[str, dict]] = None,
     **kwargs: Any,
 ) -> Browser:
     """
@@ -85,6 +86,13 @@ async def start(
     :param user_agent: if set, this will be used as the user agent for the browser.
     :type user_agent: str | None
 
+    :param proxy: proxy configuration - can be:
+                 - Simple string: "ip:port" or "http://ip:port"
+                 - With auth string: "user:pass@ip:port" or "http://user:pass@ip:port"  
+                 - Dict with auth: {"server": "ip:port", "username": "user", "password": "pass"}
+                 - Dict simple: {"server": "ip:port"}
+    :type proxy: str | dict | None
+
     :return:
     """
     if not config:
@@ -100,6 +108,7 @@ async def start(
             port=port,
             expert=expert,
             user_agent=user_agent,
+            proxy=proxy,
             **kwargs,
         )
     from .browser import Browser
