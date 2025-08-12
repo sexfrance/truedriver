@@ -1,11 +1,11 @@
 try:
-    from zendriver import *
+    from truedriver import *
 except (ModuleNotFoundError, ImportError):
     import os
     import sys
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from zendriver import *
+    from truedriver import *
 
 from pathlib import Path
 
@@ -17,13 +17,13 @@ DELAY = 2
 
 
 try:
-    from zendriver import *
+    from truedriver import *
 except (ModuleNotFoundError, ImportError):
     import os
     import sys
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from zendriver import *
+    from truedriver import *
 
 
 async def main():
@@ -69,7 +69,7 @@ async def main():
     # so for this one, we use the flag return_enclosing_element and set it to False
     title_field = await tab.find("give your post a unique title", best_match=True)
     print(title_field)
-    await title_field.send_keys("undetected zendriver")
+    await title_field.send_keys("undetected truedriver")
 
     grab_link = await tab.find("grab link", best_match=True)
     await grab_link.click()

@@ -3,7 +3,7 @@
 set -e
 set -x
 
-python_files=(zendriver scripts examples tests)
+python_files=(truedriver scripts examples tests)
 
 echo "Running ruff check..."
 uv run ruff check "${python_files[@]}"

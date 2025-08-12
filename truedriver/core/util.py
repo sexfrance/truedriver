@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Optional, Set, Union
 
 from deprecated import deprecated
 
-import zendriver
+import truedriver
 
 from .element import Element
 
@@ -70,11 +70,11 @@ async def start(
     :type lang: str
 
     :param port: if you connect to an existing debuggable session, you can specify the port here
-                 if both host and port are provided, zendriver will not start a local chrome browser!
+                 if both host and port are provided, truedriver will not start a local chrome browser!
     :type port: int
 
     :param host: if you connect to an existing debuggable session, you can specify the host here
-                 if both host and port are provided, zendriver will not start a local chrome browser!
+                 if both host and port are provided, truedriver will not start a local chrome browser!
     :type host: str
 
     :param expert:  when set to True, enabled "expert" mode.
@@ -109,7 +109,7 @@ async def start(
 
 async def create_from_undetected_chromedriver(driver: Any) -> Browser:
     """
-    create a zendriver.Browser instance from a running undetected_chromedriver.Chrome instance.
+    create a truedriver.Browser instance from a running undetected_chromedriver.Chrome instance.
     """
     from .config import Config
 
@@ -118,7 +118,7 @@ async def create_from_undetected_chromedriver(driver: Any) -> Browser:
     host, port = driver.options.debugger_address.split(":")
     conf.host, conf.port = host, int(port)
 
-    # create zendriver Browser instance
+    # create truedriver Browser instance
     browser = await start(conf)
 
     browser._process_pid = driver.browser_pid
@@ -153,7 +153,7 @@ def filter_recurse_all(
     """
     test each child using predicate(child), and return all children for which predicate(child) == True
 
-    :param doc: the cdp.dom.Node object or :py:class:`zendriver.Element`
+    :param doc: the cdp.dom.Node object or :py:class:`truedriver.Element`
     :param predicate: a function which takes a node as first parameter and returns a boolean, where True means include
     :return:
     :rtype:
@@ -179,7 +179,7 @@ def filter_recurse(
     """
     test each child using predicate(child), and return the first child of which predicate(child) == True
 
-    :param doc: the cdp.dom.Node object or :py:class:`zendriver.Element`
+    :param doc: the cdp.dom.Node object or :py:class:`truedriver.Element`
     :param predicate: a function which takes a node as first parameter and returns a boolean, where True means include
 
     """
@@ -255,7 +255,7 @@ def remove_from_tree(tree: cdp.dom.Node, node: cdp.dom.Node) -> cdp.dom.Node:
 
 
 async def html_from_tree(
-    tree: Union[cdp.dom.Node, Element], target: zendriver.Tab
+    tree: Union[cdp.dom.Node, Element], target: truedriver.Tab
 ) -> str:
     if not hasattr(tree, "children"):
         raise TypeError("object should have a .children attribute")

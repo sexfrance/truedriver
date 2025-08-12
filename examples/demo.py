@@ -3,7 +3,6 @@
 
 import asyncio
 import logging
-import logging.handlers
 import random
 import time
 
@@ -14,13 +13,13 @@ logging.basicConfig(level=10)
 
 
 try:
-    import zendriver as uc
+    import truedriver as uc
 except (ModuleNotFoundError, ImportError):
     import os
     import sys
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    import zendriver as uc
+    import truedriver as uc
 
 _monitor = mss.mss().monitors[0]
 SCREEN_WIDTH = _monitor["width"]

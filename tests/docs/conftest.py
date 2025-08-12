@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from pytest_mock import MockerFixture
 
-from zendriver.core.browser import Browser
+from truedriver.core.browser import Browser
 
 
 @pytest.fixture
@@ -13,4 +13,4 @@ def mock_print(mocker: MockerFixture) -> Mock:
 
 @pytest.fixture
 def mock_start(mocker: MockerFixture, browser: Browser) -> Mock:
-    return mocker.patch("zendriver.start", return_value=browser)
+    return mocker.patch("truedriver.start", return_value=browser)

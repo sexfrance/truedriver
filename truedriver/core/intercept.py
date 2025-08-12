@@ -1,10 +1,10 @@
 import asyncio
 import typing
 
-from zendriver import cdp
-from zendriver.cdp.fetch import HeaderEntry, RequestStage, RequestPattern
-from zendriver.cdp.network import ResourceType
-from zendriver.core.connection import Connection
+from truedriver import cdp
+from truedriver.cdp.fetch import HeaderEntry, RequestStage, RequestPattern
+from truedriver.cdp.network import ResourceType
+from truedriver.core.connection import Connection
 
 
 class BaseFetchInterception:

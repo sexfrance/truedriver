@@ -1,4 +1,4 @@
-import zendriver as zd
+import truedriver as zd
 
 
 async def test_browserscan(browser: zd.Browser) -> None:

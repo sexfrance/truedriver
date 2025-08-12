@@ -1,7 +1,7 @@
 import asyncio
 
-import zendriver as zd
-from zendriver import Element, Tab
+import truedriver as zd
+from truedriver import Element, Tab
 
 
 async def wait_for_cards(page: Tab, initial_card_count: int) -> list[Element]:

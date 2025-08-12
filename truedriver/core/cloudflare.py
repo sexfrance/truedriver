@@ -4,11 +4,11 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from zendriver import cdp, util
-from zendriver.core.element import Element
+from truedriver import cdp, util
+from truedriver.core.element import Element
 
 if TYPE_CHECKING:
-    from zendriver.core.tab import Tab
+    from truedriver.core.tab import Tab
 
 
 logger = logging.getLogger(__name__)

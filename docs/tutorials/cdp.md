@@ -1,6 +1,6 @@
 **Target page:** [https://cdpdriver.github.io/examples/console.html](https://cdpdriver.github.io/examples/console.html)
 
-In this tutorial, we will explore how to use the Chrome DevTools Protocol (CDP) directly, when Zendriver does not provide
+In this tutorial, we will explore how to use the Chrome DevTools Protocol (CDP) directly, when truedriver does not provide
 a specific API for the functionality you need.
 
 ## Sending CDP commands

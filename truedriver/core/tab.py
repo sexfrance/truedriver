@@ -433,7 +433,7 @@ class Tab(Connection):
         equivalent of javascripts document.querySelectorAll.
         this is considered one of the main methods to use in this package.
 
-        it returns all matching :py:obj:`zendriver.Element` objects.
+        it returns all matching :py:obj:`truedriver.Element` objects.
 
         :param selector: css selector. (first time? => https://www.w3schools.com/cssref/css_selectors.php )
         :type selector: str
@@ -1730,7 +1730,7 @@ class Tab(Connection):
             - navigator.language
             - navigator.platform
 
-        Note: In most cases, you should instead pass the user_agent option to zendriver.start().
+        Note: In most cases, you should instead pass the user_agent option to truedriver.start().
         This ensures that the user agent is set before the browser starts and correctly applies to
         all pages and requests.
 

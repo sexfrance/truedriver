@@ -1,6 +1,6 @@
 [project]
-name = "zendriver"
-version = "0.13.1"
+name = "truedriver"
+version = "0.1.0"
 description = "A blazing fast, async-first, undetectable webscraping/web automation framework"
 readme = "README.md"
 authors = [{ name = "Stephan Lensky", email = "oss@slensky.com" }]
@@ -53,7 +53,7 @@ asyncio_default_fixture_loop_scope = "function"
 log_level = "INFO"
 
 [tool.ruff]
-exclude = ["zendriver/cdp"]
+exclude = ["truedriver/cdp"]
 
 [tool.ruff.lint]
 exclude = [
@@ -65,7 +65,7 @@ exclude = [
 
 [tool.mypy]
 exclude = [
-    "zendriver/cdp",
+    "truedriver/cdp",
     "examples/demo.py",
     "examples/fetch_domain.py",
     "examples/imgur_upload_image.py",

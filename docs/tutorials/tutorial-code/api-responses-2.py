@@ -1,8 +1,8 @@
 import asyncio
 import json
 
-import zendriver as zd
-from zendriver.cdp.network import get_response_body
+import truedriver as zd
+from truedriver.cdp.network import get_response_body
 
 
 async def main() -> None:

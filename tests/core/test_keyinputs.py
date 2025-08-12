@@ -1,7 +1,7 @@
-import zendriver as zd
+import truedriver as zd
 
 from tests.sample_data import sample_file
-from zendriver import SpecialKeys, KeyModifiers, KeyEvents
+from truedriver import SpecialKeys, KeyModifiers, KeyEvents
 
 
 async def test_visible_events(browser: zd.Browser) -> None:

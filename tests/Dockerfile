@@ -14,7 +14,7 @@ RUN chown $DOCKER_USER:$DOCKER_USER /app
 # Switch to the non-root user
 USER $DOCKER_USER
 
-# Add a hotkey to swaywm config for starting next test (for ZENDRIVER_PAUSE_AFTER_TEST=true)
+# Add a hotkey to swaywm config for starting next test (for truedriver_PAUSE_AFTER_TEST=true)
 RUN echo 'bindsym Mod4+Return exec /app/tests/next_test.sh' >> ~/.config/sway/config
 
 # Set the working directory

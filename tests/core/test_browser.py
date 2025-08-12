@@ -1,7 +1,7 @@
 import pytest
 from pytest_mock import MockerFixture
 
-import zendriver as zd
+import truedriver as zd
 from tests.conftest import CreateBrowser
 
 
@@ -11,7 +11,7 @@ async def test_connection_error_raises_exception_and_logs_stderr(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mocker.patch(
-        "zendriver.core.browser.Browser.test_connection",
+        "truedriver.core.browser.Browser.test_connection",
         return_value=False,
     )
     with caplog.at_level("INFO"):

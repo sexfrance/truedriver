@@ -7,7 +7,7 @@ services:
       - 5911:5911 # VNC server port
     volumes:
       - swayvnc-wayvnc-certs:/certs
-      - ./zendriver:/app/zendriver
+      - ./truedriver:/app/truedriver
       - ./tests:/app/tests
       - ./scripts:/app/scripts
     environment:
@@ -19,7 +19,7 @@ services:
       - WAYVNC_PASSWORD=wayvnc
       # When set to true, the test runner will pause after each test is complete to allow debugging with VNC client
       # Proceed to the next test by sending Mod+Return over VNC
-      - ZENDRIVER_PAUSE_AFTER_TEST=false
+      - truedriver_PAUSE_AFTER_TEST=false
     privileged: true
 
 volumes:

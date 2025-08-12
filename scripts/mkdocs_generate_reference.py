@@ -9,7 +9,7 @@ from typing import Any
 
 import yaml
 
-PACKAGE_NAME = "zendriver"
+PACKAGE_NAME = "truedriver"
 REPO_ROOT = Path(__file__).parent.parent
 PACKAGE_ROOT = REPO_ROOT / PACKAGE_NAME
 REFERENCE_DOCS_ROOT = REPO_ROOT / "docs" / "reference"

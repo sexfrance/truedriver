@@ -58,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Complete rewrite of keyboard input system with new `KeyEvents` class in `zendriver.core.keys` @hvgupta
+- Complete rewrite of keyboard input system with new `KeyEvents` class in `truedriver.core.keys` @hvgupta
   - Added support for modifiers (Ctrl, Alt, Shift, Meta)
   - Added support for special keys including arrows, escape, delete and backspace
   - Added `KeyEvents.from_text()` class method for converting plain text to cdp events
@@ -162,7 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Deprecated `zendriver.loop()` function. You should instead use `asyncio` functions directly, for example:
+- Deprecated `truedriver.loop()` function. You should instead use `asyncio` functions directly, for example:
 
   ```python
   asyncio.run(your_main_method())
@@ -242,7 +242,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add automated testing framework! @stephanlensky
   - For now, just a few tests are written, including one to test browserscan.com bot detection
-  - In the future, we can expand this test suite further (see [Zendriver#18](https://github.com/stephanlensky/zendriver/issues/18))
+  - In the future, we can expand this test suite further (see [truedriver#18](https://github.com/stephanlensky/truedriver/issues/18))
 - Add return type annotation to `Tab.get_content()` @stephanlensky
 
 ### Changed
@@ -269,7 +269,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `zendriver.__version__` attribute to get current package version at runtime @stephanlensky
+- Added `truedriver.__version__` attribute to get current package version at runtime @stephanlensky
 
 ## [0.1.3] - 2024-11-12
 

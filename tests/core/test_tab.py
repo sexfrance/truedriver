@@ -3,10 +3,10 @@ from typing import Any
 
 import pytest
 
-import zendriver as zd
+import truedriver as zd
 from tests.sample_data import sample_file
-from zendriver.cdp.fetch import RequestStage
-from zendriver.cdp.network import ResourceType
+from truedriver.cdp.fetch import RequestStage
+from truedriver.cdp.network import ResourceType
 
 
 async def test_set_user_agent_sets_navigator_values(browser: zd.Browser) -> None:
@@ -245,4 +245,4 @@ async def test_intercept(browser: zd.Browser) -> None:
 
         assert body is not None
         # original_response = loads(body)
-        # assert original_response["name"] == "Zendriver"
+        # assert original_response["name"] == "truedriver"

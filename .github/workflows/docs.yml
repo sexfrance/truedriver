@@ -9,7 +9,7 @@ on:
       - "mkdocs.yml"
       - "README.md"
       - "CHANGELOG.md"
-      - "zendriver/cdp/**"
+      - "truedriver/cdp/**"
   workflow_dispatch:
 permissions:
   contents: write

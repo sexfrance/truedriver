@@ -11,7 +11,7 @@ from typing import AsyncGenerator, Any
 
 import pytest
 
-import zendriver as zd
+import truedriver as zd
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +36,9 @@ NEXT_TEST_EVENT = Event()
 
 
 class TestConfig:
-    BROWSER_MODE = BrowserMode(os.getenv("ZENDRIVER_TEST_BROWSERS", "all"))
-    PAUSE_AFTER_TEST = os.getenv("ZENDRIVER_PAUSE_AFTER_TEST", "false") == "true"
-    SANDBOX = os.getenv("ZENDRIVER_TEST_SANDBOX", "false") == "true"
+    BROWSER_MODE = BrowserMode(os.getenv("truedriver_TEST_BROWSERS", "all"))
+    PAUSE_AFTER_TEST = os.getenv("truedriver_PAUSE_AFTER_TEST", "false") == "true"
+    SANDBOX = os.getenv("truedriver_TEST_SANDBOX", "false") == "true"
     USE_WAYLAND = os.getenv("WAYLAND_DISPLAY") is not None
 
 
@@ -119,10 +119,10 @@ async def browser(
 def handle_next_test(signum: int, frame: FrameType | None) -> None:
     if not TestConfig.PAUSE_AFTER_TEST:
         logger.warning(
-            "Next test signal received, but ZENDRIVER_PAUSE_AFTER_TEST is not set."
+            "Next test signal received, but truedriver_PAUSE_AFTER_TEST is not set."
         )
         logger.warning(
-            "To enable pausing after each test, set ZENDRIVER_PAUSE_AFTER_TEST=true"
+            "To enable pausing after each test, set truedriver_PAUSE_AFTER_TEST=true"
         )
         return
 

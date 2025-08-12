@@ -12,10 +12,10 @@ Intended for use by maintainers only.
 This script will:
 - Read pyproject.toml to automatically determine the new version number
 - Update pyproject.toml with the new version number
-- Update zendriver/_version.py with the new version number
+- Update truedriver/_version.py with the new version number
 - Run `uv sync` to update the lock file
 - Update CHANGELOG.md, creating a new section for the release and moving unreleased changes there
-- Commit and push changes to pyproject.toml, uv.lock, zendriver/_version.py, and CHANGELOG.md
+- Commit and push changes to pyproject.toml, uv.lock, truedriver/_version.py, and CHANGELOG.md
 - Create and push a git tag for the new version
 - Create a new release on GitHub ($GITHUB_TOKEN environment variable must be set)
 
@@ -37,12 +37,12 @@ import requests
 REPO_ROOT = Path(__file__).parent.parent
 
 # for creating GitHub release
-GITHUB_REPO_SLUG = "cdpdriver/zendriver"
+GITHUB_REPO_SLUG = "cdpdriver/truedriver"
 
 PYPROJECT_TOML = Path("pyproject.toml")
 PYPROJECT_VERSION_REGEX = r"^version = \"(?P<version>\d+\.\d+\.\d+)\"$"
 
-VERSION_PY = Path("zendriver/_version.py")
+VERSION_PY = Path("truedriver/_version.py")
 
 CHANGELOG_MD = Path("CHANGELOG.md")
 CHANGELOG_MD_UNRELEASED_REGEX = (
@@ -198,7 +198,7 @@ def commit_and_push_changes(new_version: str, dryrun: bool) -> None:
         "pyproject.toml",
         "uv.lock",
         "CHANGELOG.md",
-        "zendriver/_version.py",
+        "truedriver/_version.py",
     ]
     subprocess.run(["git", "add"] + files_to_add)
     subprocess.run(["git", "commit", "-m", f"Bump version to {new_version}"])

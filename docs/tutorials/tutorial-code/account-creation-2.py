@@ -1,7 +1,7 @@
 import asyncio
 
-import zendriver as zd
-from zendriver import Tab
+import truedriver as zd
+from truedriver import Tab
 
 
 async def create_account(page: Tab, name: str, email: str, password: str) -> None:

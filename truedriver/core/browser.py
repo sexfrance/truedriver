@@ -35,7 +35,7 @@ class Browser:
     there should usually be only 1 instance of this.
 
     All opened tabs, extra browser screens and resources will not cause a new Browser process,
-    but rather create additional :class:`zendriver.Tab` objects.
+    but rather create additional :class:`truedriver.Tab` objects.
 
     So, besides starting your instance and first/additional tabs, you don't actively use it a lot under normal conditions.
 
@@ -46,7 +46,7 @@ class Browser:
      - background processes
 
     note:
-    the Browser object is not instantiated by __init__ but using the asynchronous :meth:`zendriver.Browser.create` method.
+    the Browser object is not instantiated by __init__ but using the asynchronous :meth:`truedriver.Browser.create` method.
 
     note:
     in Chromium based browsers, there is a parent process which keeps running all the time, even if

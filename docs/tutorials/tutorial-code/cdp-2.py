@@ -1,8 +1,8 @@
 import asyncio
 
-import zendriver as zd
-from zendriver import cdp
-from zendriver.cdp import runtime
+import truedriver as zd
+from truedriver import cdp
+from truedriver.cdp import runtime
 
 
 async def main() -> None:

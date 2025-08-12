@@ -1,11 +1,11 @@
 import asyncio
 
-import zendriver as zd
-
+import truedriver as zd
 
 async def main() -> None:
     browser = await zd.start()
     page = await browser.get("https://www.browserscan.net/bot-detection")
+    await page.wait_for_ready_state("complete")
     await page.save_screenshot("browserscan.png")
     await browser.stop()
 

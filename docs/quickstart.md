@@ -5,8 +5,8 @@
 To install, simply use `pip` (or your favorite package manager):
 
 ```sh
-pip install zendriver
-# or uv add zendriver, poetry add zendriver, etc.
+pip install truedriver
+# or uv add truedriver, poetry add truedriver, etc.
 ```
 
 ## Basic usage
@@ -15,7 +15,7 @@ Open a browser, navigate to a page, and scrape the content:
 
 ```python
 import asyncio
-import zendriver as zd
+import truedriver as zd
 
 async def main():
     browser = await zd.start()
@@ -39,11 +39,11 @@ if __name__ == '__main__':
 
 ```python
 import asyncio
-import zendriver as zd
+import truedriver as zd
 
 async def main():
     browser = await zd.start()
-    page = await browser.get('https://zendriver.dev/')
+    page = await browser.get('https://truedriver.dev/')
 
     elems = await page.select_all('*[src]')
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 I'll leave out the async boilerplate here
 
 ```python
-import zendriver as zd
+import truedriver as zd
 
 browser = await zd.start(
     headless=False,
@@ -85,7 +85,7 @@ tab = await browser.get('https://somewebsite.com')
 I'll leave out the async boilerplate here
 
 ```python
-import zendriver as zd
+import truedriver as zd
 
 config = zd.Config()
 config.headless = False
@@ -111,7 +111,7 @@ shows a script for uploading an image to imgur.
 ```python
 import asyncio
 from pathlib import Path
-import zendriver as zd
+import truedriver as zd
 
 # interesting, this is a typical site which runs completely on javascript, and that causes
 # this script to be faster than the js can present the elements. This may be one of the downsides
@@ -161,7 +161,7 @@ async def main():
     # so for this one, we use the flag return_enclosing_element and set it to False
     title_field = await tab.find("give your post a unique title", best_match=True)
     print(title_field)
-    await title_field.send_keys("undetected zendriver")
+    await title_field.send_keys("undetected truedriver")
 
     grab_link = await tab.find("grab link", best_match=True)
     await grab_link.click()

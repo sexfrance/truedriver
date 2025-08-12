@@ -29,7 +29,7 @@ from .. import cdp
 from . import util
 
 if TYPE_CHECKING:
-    from zendriver.core.browser import Browser
+    from truedriver.core.browser import Browser
 
 
 T = TypeVar("T")

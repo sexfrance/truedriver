@@ -21,5 +21,5 @@ async def test_api_responses_tutorial_2(
     await module.main()
 
     mock_print.assert_any_call(
-        "Successfully read user data response for user:", "Zendriver"
+        "Successfully read user data response for user:", "truedriver"
     )

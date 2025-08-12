@@ -126,21 +126,23 @@ class Config:
         self._default_browser_args = [
             "--remote-allow-origins=*",
             "--no-first-run",
-            "--no-service-autorun",
+            "--no-service-autorun", 
             "--no-default-browser-check",
             "--homepage=about:blank",
             "--no-pings",
             "--password-store=basic",
-            "--disable-infobars",
-            "--disable-breakpad",
-            "--disable-component-update",
             "--disable-backgrounding-occluded-windows",
             "--disable-renderer-backgrounding",
             "--disable-background-networking",
             "--disable-dev-shm-usage",
-            "--disable-features=IsolateOrigins,DisableLoadExtensionCommandLineSwitch,site-per-process",
+            "--disable-blink-features=AutomationControlled",  #? delete
             "--disable-session-crashed-bubble",
             "--disable-search-engine-choice-screen",
+            "--disable-features=VizDisplayCompositor",
+            "--enable-features=NetworkService",
+            "--force-color-profile=srgb",
+            "--metrics-recording-only",
+            "--no-report-upload",
         ]
 
     @property
@@ -210,8 +212,7 @@ class Config:
         args = self._default_browser_args.copy()
 
         args += ["--user-data-dir=%s" % self.user_data_dir]
-        args += ["--disable-features=IsolateOrigins,site-per-process"]
-        args += ["--disable-session-crashed-bubble"]
+        
         if self.expert:
             args += ["--disable-web-security", "--disable-site-isolation-trials"]
         if self._browser_args:

@@ -997,7 +997,7 @@ def main() -> None:
         if not p.exists():
             dl_file(p.name)
 
-    output_path = REPO_ROOT / "zendriver" / "cdp"
+    output_path = REPO_ROOT / "truedriver" / "cdp"
 
     if output_path.exists():
         shutil.rmtree(output_path)
