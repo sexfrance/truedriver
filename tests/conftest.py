@@ -11,7 +11,7 @@ from typing import AsyncGenerator, Any
 
 import pytest
 
-import truedriver as zd
+import truedriver as td
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class CreateBrowser(AbstractAsyncContextManager):  # type: ignore
         if browser_args is not None:
             args.extend(browser_args)
 
-        self.config = zd.Config(
+        self.config = td.Config(
             headless=headless,
             sandbox=sandbox,
             browser_args=args,
@@ -69,10 +69,10 @@ class CreateBrowser(AbstractAsyncContextManager):  # type: ignore
             browser_connection_timeout=browser_connection_timeout,
         )
 
-        self.browser: zd.Browser | None = None
+        self.browser: td.Browser | None = None
 
-    async def __aenter__(self) -> zd.Browser:
-        self.browser = await zd.start(self.config)
+    async def __aenter__(self) -> td.Browser:
+        self.browser = await td.start(self.config)
         browser_pid = self.browser._process_pid
         assert browser_pid is not None and browser_pid > 0
         await self.browser.wait(0)
@@ -102,7 +102,7 @@ def headless(request: pytest.FixtureRequest) -> bool:
 @pytest.fixture
 async def browser(
     headless: bool, create_browser: type[CreateBrowser]
-) -> AsyncGenerator[zd.Browser, None]:
+) -> AsyncGenerator[td.Browser, None]:
     NEXT_TEST_EVENT.clear()
 
     async with create_browser(headless=headless) as browser:

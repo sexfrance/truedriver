@@ -1,12 +1,12 @@
 import asyncio
 
-import truedriver as zd
+import truedriver as td
 from truedriver import cdp
 from truedriver.cdp import runtime
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
     page = await browser.get(
         "https://cdpdriver.github.io/examples/console.html",
     )

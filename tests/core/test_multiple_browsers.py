@@ -1,4 +1,4 @@
-import truedriver as zd
+import truedriver as td
 from tests.conftest import CreateBrowser
 
 
@@ -7,9 +7,9 @@ async def test_multiple_browsers_diff_userdata(
 ) -> None:
     config = create_browser().config
 
-    browser1 = await zd.start(config)
-    browser2 = await zd.start(config)
-    browser3 = await zd.start(config)
+    browser1 = await td.start(config)
+    browser2 = await td.start(config)
+    browser3 = await td.start(config)
 
     assert not browser1.config.uses_custom_data_dir
     assert not browser2.config.uses_custom_data_dir

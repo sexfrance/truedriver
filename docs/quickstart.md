@@ -4,7 +4,7 @@
 
 To install, simply use `pip` (or your favorite package manager):
 
-```sh
+````sh
 pip install truedriver
 # or uv add truedriver, poetry add truedriver, etc.## Working with proxies
 
@@ -14,44 +14,44 @@ Truedriver makes proxy usage simple with multiple configuration formats and auto
 
 ```python
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 async def main():
     # Simple proxy without authentication
-    browser = await zd.start(proxy="proxy.example.com:8080")
-    
+    browser = await td.start(proxy="proxy.example.com:8080")
+
     # Or with protocol specified
-    browser = await zd.start(proxy="http://proxy.example.com:8080")
-    
+    browser = await td.start(proxy="http://proxy.example.com:8080")
+
     tab = await browser.get('https://httpbin.org/ip')
     print(await tab.get_content())  # Should show proxy IP
     await browser.stop()
 
 if __name__ == '__main__':
     asyncio.run(main())
-```
+````
 
 ### Authenticated proxies
 
 ```python
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 async def main():
     # Method 1: String format with authentication
-    browser = await zd.start(proxy="username:password@proxy.example.com:8080")
-    
+    browser = await td.start(proxy="username:password@proxy.example.com:8080")
+
     # Method 2: Dict format
     proxy_config = {
         "server": "proxy.example.com:8080",
         "username": "myuser",
         "password": "mypass"
     }
-    browser = await zd.start(proxy=proxy_config)
-    
+    browser = await td.start(proxy=proxy_config)
+
     # Method 3: With protocol in string format
-    browser = await zd.start(proxy="http://username:password@proxy.example.com:8080")
-    
+    browser = await td.start(proxy="http://username:password@proxy.example.com:8080")
+
     tab = await browser.get('https://httpbin.org/ip')
     await browser.stop()
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 ```python
 import asyncio
 import random
-import truedriver as zd
+import truedriver as td
 
 def get_random_proxy():
     """Load a random proxy from file"""
@@ -78,28 +78,28 @@ def get_random_proxy():
 async def scrape_with_proxy():
     # Get a random proxy
     proxy = get_random_proxy()
-    
+
     if proxy:
-        browser = await zd.start(
+        browser = await td.start(
             proxy=proxy,
             headless=True,
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         )
         print(f"Using proxy: {proxy}")
     else:
-        browser = await zd.start(headless=True)
+        browser = await td.start(headless=True)
         print("No proxy available, running direct")
-    
+
     try:
         # Check IP
         tab = await browser.get('https://httpbin.org/ip')
         ip_info = await tab.get_content()
         print(f"Current IP: {ip_info}")
-        
+
         # Scrape target site
         tab = await browser.get('https://example.com')
         content = await tab.get_content()
-        
+
     finally:
         await browser.stop()
 
@@ -125,10 +125,10 @@ Open a browser, navigate to a page, and scrape the content:
 
 ```python
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 async def main():
-    browser = await zd.start()
+    browser = await td.start()
     page = await browser.get('https://example.com')
 
     # get HTML content of the page as a string
@@ -149,10 +149,10 @@ if __name__ == '__main__':
 
 ```python
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 async def main():
-    browser = await zd.start()
+    browser = await td.start()
     page = await browser.get('https://zendriver.dev/')
 
     elems = await page.select_all('*[src]')
@@ -178,9 +178,9 @@ if __name__ == '__main__':
 I'll leave out the async boilerplate here
 
 ```python
-import truedriver as zd
+import truedriver as td
 
-browser = await zd.start(
+browser = await td.start(
     headless=False,
     user_data_dir="/path/to/existing/profile",  # by specifying it, it won't be automatically cleaned up when finished
     browser_executable_path="/path/to/some/other/browser",
@@ -195,9 +195,9 @@ tab = await browser.get('https://somewebsite.com')
 I'll leave out the async boilerplate here
 
 ```python
-import truedriver as zd
+import truedriver as td
 
-config = zd.Config()
+config = td.Config()
 config.headless = False
 config.user_data_dir="/path/to/existing/profile",  # by specifying it, it won't be automatically cleaned up when finished
 config.browser_executable_path="/path/to/some/other/browser",
@@ -221,7 +221,7 @@ shows a script for uploading an image to imgur.
 ```python
 import asyncio
 from pathlib import Path
-import truedriver as zd
+import truedriver as td
 
 # interesting, this is a typical site which runs completely on javascript, and that causes
 # this script to be faster than the js can present the elements. This may be one of the downsides
@@ -229,7 +229,7 @@ import truedriver as zd
 DELAY = 2
 
 async def main():
-    browser = await zd.start()
+    browser = await td.start()
     tab = await browser.get("https://imgur.com")
 
     # now we first need an image to upload, lets make a screenshot of the project page
@@ -301,12 +301,12 @@ Truedriver provides comprehensive support for interacting with iframe content. T
 
 ```python
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 async def main():
-    browser = await zd.start()
+    browser = await td.start()
     tab = await browser.get('https://example.com/page-with-iframes')
-    
+
     # Method 1: Find iframe by URL pattern
     iframe = await tab.find_frame_by_url(r'.*captcha\.com.*')
     if iframe:
@@ -316,21 +316,21 @@ async def main():
         await button.click()
         # Switch back to main frame
         await tab.switch_to_main_frame()
-    
+
     # Method 2: Find iframe by name
     iframe = await tab.find_frame_by_name('captcha-frame')
     if iframe:
         await tab.switch_to_frame(iframe)
         # Interact with iframe content
         await tab.switch_to_main_frame()
-    
+
     # Method 3: Find iframe element and switch to it
     iframe_element = await tab.find('iframe[src*="captcha"]')
     if iframe_element:
         await tab.switch_to_frame(iframe_element)
         # Interact with iframe content
         await tab.switch_to_main_frame()
-    
+
     # Method 4: Switch by index (useful for multiple iframes)
     frames = await tab.get_frames()
     if len(frames) > 1:
@@ -346,37 +346,37 @@ if __name__ == '__main__':
 
 ```python
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 async def handle_embedded_form():
-    browser = await zd.start()
+    browser = await td.start()
     tab = await browser.get('https://example.com/contact')
-    
+
     # Find the embedded form iframe
     form_iframe = await tab.find_frame_by_url(r'.*forms\.example\.com.*')
-    
+
     if form_iframe:
         # Switch to the form iframe
         await tab.switch_to_frame(form_iframe)
-        
+
         # Fill out the form inside the iframe
         name_field = await tab.find('input[name="name"]')
         await name_field.send_keys('John Doe')
-        
+
         email_field = await tab.find('input[name="email"]')
         await email_field.send_keys('john@example.com')
-        
+
         submit_button = await tab.find('button[type="submit"]')
         await submit_button.click()
-        
+
         # Wait for submission confirmation
         await tab.find('Success', timeout=10)
-        
+
         # Switch back to main frame
         await tab.switch_to_main_frame()
-        
+
         print('Form submitted successfully')
-    
+
     await browser.stop()
 
 if __name__ == '__main__':

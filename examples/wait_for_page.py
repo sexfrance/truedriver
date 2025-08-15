@@ -1,9 +1,9 @@
 import asyncio
-import truedriver as zd
+import truedriver as td
 
 
 async def main() -> None:
-    async with await zd.start() as browser:
+    async with await td.start() as browser:
         tab = browser.main_tab
         async with tab.expect_request("https://github.com/") as request_info:
             async with tab.expect_response(

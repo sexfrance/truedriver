@@ -1,6 +1,6 @@
 import asyncio
 
-import truedriver as zd
+import truedriver as td
 from truedriver import Element, Tab
 
 
@@ -23,7 +23,7 @@ def get_lucky_card(cards: list[Element]) -> Element | None:
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
     page = await browser.get(
         "https://cdpdriver.github.io/examples/scrollable-cards.html",
     )

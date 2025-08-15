@@ -1,10 +1,10 @@
 import asyncio
 
-import truedriver as zd
+import truedriver as td
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
 
     # TODO: Read the API response
     page = await browser.get(
