@@ -42,7 +42,6 @@ TargetType = Union[cdp.target.TargetInfo, cdp.target.TargetID]
 
 logger = logging.getLogger("uc.connection")
 
-
 class ProtocolException(Exception):
     def __init__(self, *args: Any):
         self.message = None
@@ -76,7 +75,6 @@ class ProtocolException(Exception):
 
 class SettingClassVarNotAllowedException(PermissionError):
     pass
-
 
 class Transaction(asyncio.Future[Any]):
     def __init__(self, cdp_obj: Generator[dict[str, Any], dict[str, Any], Any]):
@@ -202,16 +200,18 @@ class Connection(metaclass=CantTouchThis):
         self._target = target
         self.__count__ = itertools.count(0)
         self._owner = _owner
-        self.websocket_url: str = websocket_url
+        self.websocket_url = websocket_url
         self.websocket = None
-        self.mapper: dict[int, Transaction] = {}
-        self.handlers: dict[Any, list[Union[Callable, Awaitable]]] = (  # type: ignore
+        self.mapper = {}
+        self.handlers = (  # type: ignore
             collections.defaultdict(list)
         )
         self.recv_task = None
-        self.enabled_domains: list[Any] = []
-        self._last_result: list[Any] = []
-        self.listener: Listener | None = None
+        self.enabled_domains = []
+        self._last_result = []
+        self.listener = None
+        # Prevent concurrent aopen() races that can lead to multiple recv loops
+        self._aopen_lock = asyncio.Lock()
         self.__dict__.update(**kwargs)
 
     @property
@@ -421,22 +421,24 @@ class Connection(metaclass=CantTouchThis):
         :return:
         """
 
-        if self.websocket is None:
-            try:
-                self.websocket = await websockets.connect(
-                    self.websocket_url,
-                    ping_timeout=PING_TIMEOUT,
-                    max_size=MAX_SIZE,
-                )
+        async with self._aopen_lock:
+            if self.websocket is None:
+                try:
+                    self.websocket = await websockets.connect(
+                        self.websocket_url,
+                        ping_timeout=PING_TIMEOUT,
+                        max_size=MAX_SIZE,
+                    )
+                    # Create a fresh listener tied to this websocket
+                    self.listener = Listener(self)
+                except (Exception,) as e:
+                    logger.debug("exception during opening of websocket : %s", e)
+                    if self.listener:
+                        self.listener.cancel()
+                    raise
+            if not self.listener or not self.listener.running:
                 self.listener = Listener(self)
-            except (Exception,) as e:
-                logger.debug("exception during opening of websocket : %s", e)
-                if self.listener:
-                    self.listener.cancel()
-                raise
-        if not self.listener or not self.listener.running:
-            self.listener = Listener(self)
-            logger.debug("\n✅  opened websocket connection to %s", self.websocket_url)
+                logger.debug("\n✅  opened websocket connection to %s", self.websocket_url)
 
         # when a websocket connection is closed (either by error or on purpose)
         # and reconnected, the registered event listeners (if any), should be

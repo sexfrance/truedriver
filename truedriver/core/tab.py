@@ -142,6 +142,12 @@ class Tab(Connection):
         self.browser = browser
         self._dom = None
         self._window_id = None
+        self._proxy_auth_enabled = False
+
+    async def setup_proxy_auth(self) -> None:
+        """Set up proxy authentication - delegates to browser implementation."""
+        if self.browser and hasattr(self.browser, 'setup_proxy_auth'):
+            await self.browser.setup_proxy_auth(self)
 
     @property
     def inspector_url(self) -> str:
@@ -397,7 +403,7 @@ class Tab(Connection):
         return items
 
     async def get(
-        self, url: str = "about:blank", new_tab: bool = False, new_window: bool = False
+        self, url: str = "about:blank", new_tab: bool = False, new_window: bool = False, timeout: Union[int, float] = 10
     ) -> Tab:
         """top level get. utilizes the first tab to retrieve given url.
 
@@ -408,6 +414,7 @@ class Tab(Connection):
         :param url: the url to navigate to
         :param new_tab: open new tab
         :param new_window:  open new window
+        :param timeout: timeout in seconds for navigation
         :return: Page
         """
         if not self.browser:
@@ -421,7 +428,7 @@ class Tab(Connection):
             return await self.browser.get(url, new_tab, new_window)
         else:
             await self.send(cdp.page.navigate(url))
-            await self.wait()
+            await asyncio.wait_for(self.wait(), timeout=timeout)
             return self
 
     async def query_selector_all(
@@ -806,7 +813,7 @@ class Tab(Connection):
                 await_promise=await_promise,
                 return_by_value=return_by_value,
                 allow_unsafe_eval_blocked_by_csp=True,
-                execution_context_id=execution_context_id,
+                context_id=execution_context_id,
             )
         )
         if errors:

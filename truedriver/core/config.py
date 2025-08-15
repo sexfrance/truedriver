@@ -244,11 +244,10 @@ class Config:
     def _parse_proxy_server(self) -> Optional[str]:
         """
         Parse proxy configuration and return proxy server string for Chrome.
-        Handles both simple proxies and authenticated proxies via URL encoding.
+        For authenticated proxies, DO NOT include credentials; CDP will handle auth.
         
         Returns:
-            str: Proxy server string in format "protocol://host:port" or 
-                 "protocol://username:password@host:port" or None
+            str: Proxy server string in format "protocol://host:port" or None
         """
         if not self.proxy:
             return None
@@ -259,22 +258,22 @@ class Config:
             if not proxy_str:
                 return None
                 
-            # If it already has a protocol, use as-is
+            # Normalize to http://host:port and strip any credentials
             if "://" in proxy_str:
-                return proxy_str
+                protocol, rest = proxy_str.split("://", 1)
+            else:
+                protocol, rest = "http", proxy_str
+
+            # Strip credentials if present
+            if "@" in rest:
+                rest = rest.split("@", 1)[1]
             
-            # If it has @ symbol, it's user:pass@host:port format
-            if "@" in proxy_str:
-                return f"http://{proxy_str}"
-            
-            # Simple host:port format
-            return f"http://{proxy_str}"
+            return f"{protocol}://{rest}"
             
         elif isinstance(self.proxy, dict):
-            # Dict format: {"server": "ip:port", "username": "user", "password": "pass"}
+            # Dict format: {"server": "ip:port", "username": "user", "password": "pass", "type": "http|socks5"}
             server = self.proxy.get("server", "").strip()
-            username = self.proxy.get("username", "").strip()
-            password = self.proxy.get("password", "").strip()
+            ptype = (self.proxy.get("type") or "").strip().lower()
             
             if not server:
                 logger.warning("Proxy dict missing 'server' key")
@@ -284,13 +283,10 @@ class Config:
             if "://" in server:
                 protocol, server = server.split("://", 1)
             else:
-                protocol = "http"
+                protocol = ptype if ptype in {"http", "https", "socks5", "socks4"} else "http"
             
-            # Build proxy URL with authentication if provided
-            if username and password:
-                return f"{protocol}://{username}:{password}@{server}"
-            else:
-                return f"{protocol}://{server}"
+            # Always return without credentials; CDP handles authentication
+            return f"{protocol}://{server}"
         else:
             logger.warning(f"Invalid proxy format: {type(self.proxy)}")
             return None

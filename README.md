@@ -94,8 +94,15 @@ if __name__ == "__main__":
 
 ### Proxy Support
 
-Use proxies with simple configuration:
+Truedriver supports proxies in multiple formats, including authenticated proxies. Just pass the `proxy` argument to `td.start()`:
 
+**Supported formats:**
+
+- Simple: `"ip:port"` or `"http://ip:port"`
+- Authenticated (string): `"username:password@ip:port"` or `"http://username:password@ip:port"`
+- Authenticated (dict): `{ "server": "ip:port", "username": "user", "password": "pass" }`
+
+**Example:**
 ```python
 import asyncio
 import truedriver as td
@@ -103,24 +110,27 @@ import truedriver as td
 async def main():
     # Simple proxy
     browser = await td.start(proxy="proxy.example.com:8080")
-    
+
     # Authenticated proxy (string format)
-    browser = await td.start(proxy="user:pass@proxy.example.com:8080")
-    
+    browser = await td.start(proxy="your-username:your-password@proxy.example.com:8080")
+
     # Authenticated proxy (dict format)
     proxy_config = {
         "server": "proxy.example.com:8080",
-        "username": "myuser", 
-        "password": "mypass"
+        "username": "your-username",
+        "password": "your-password"
     }
     browser = await td.start(proxy=proxy_config)
-    
+
     tab = await browser.get("https://httpbin.org/ip")
+    print(await tab.get_content())
     await browser.stop()
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+> **Note:** Replace `your-username`, `your-password`, and `proxy.example.com:8080` with your actual proxy credentials. Truedriver automatically handles proxy authentication using the Chrome DevTools Protocol—no manual CDP handlers required.
 
 ### Advanced Configuration
 
