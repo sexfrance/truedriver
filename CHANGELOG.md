@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `evaluate()` method parameter error (`execution_context_id` → `context_id`)
   - Improved error handling and timeout support in navigation methods
   - Cleaned up redundant code and debug logging
+- **Timeout behavior in navigation** - Refined timeout functionality to only apply to page loading phase
+  - `Tab.get()` timeout now only applies to page reaching "interactive" state, not entire navigation
+  - Pages that are slow to load no longer hang indefinitely but still complete navigation
+  - Added warning logging when page load timeout is exceeded
+  - Improved documentation to clarify timeout scope
 
 ### Added
 

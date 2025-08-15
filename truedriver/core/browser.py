@@ -272,7 +272,7 @@ class Browser:
         :param url: the url to navigate to
         :param new_tab: open new tab
         :param new_window:  open new window
-        :param timeout: timeout in seconds for navigation
+        :param timeout: timeout in seconds for navigation (time to wait for target info change event)
         :return: Page
         :raises: asyncio.TimeoutError
         """

@@ -414,7 +414,7 @@ class Tab(Connection):
         :param url: the url to navigate to
         :param new_tab: open new tab
         :param new_window:  open new window
-        :param timeout: timeout in seconds for navigation
+        :param timeout: timeout in seconds for page load (time to wait for page to reach interactive state)
         :return: Page
         """
         if not self.browser:
@@ -428,7 +428,13 @@ class Tab(Connection):
             return await self.browser.get(url, new_tab, new_window)
         else:
             await self.send(cdp.page.navigate(url))
-            await asyncio.wait_for(self.wait(), timeout=timeout)
+            # Wait for page to load with timeout, then do normal wait for idle
+            try:
+                await self.wait_for_ready_state("interactive", timeout=timeout)
+            except asyncio.TimeoutError:
+                # Page didn't load within timeout, but continue
+                logger.warning(f"Page load timeout ({timeout}s) reached for {url}")
+            await self.wait()
             return self
 
     async def query_selector_all(
