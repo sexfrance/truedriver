@@ -1,6 +1,6 @@
 [project]
 name = "truedriver"
-version = "0.1.3"
+version = "0.1.4"
 description = "A blazing fast, async-first, undetectable webscraping/web automation framework"
 readme = "README.md"
 authors = [{ name = "Stephan Lensky", email = "oss@slensky.com" }]

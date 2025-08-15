@@ -1,6 +1,6 @@
 import asyncio
 
-import truedriver as zd
+import truedriver as td
 from truedriver import Element, Tab
 
 
@@ -14,7 +14,7 @@ async def wait_for_cards(page: Tab, initial_card_count: int) -> list[Element]:
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
     page = await browser.get(
         "https://cdpdriver.github.io/examples/scrollable-cards.html",
     )

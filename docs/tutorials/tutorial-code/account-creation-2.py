@@ -1,6 +1,6 @@
 import asyncio
 
-import truedriver as zd
+import truedriver as td
 from truedriver import Tab
 
 
@@ -53,7 +53,7 @@ async def login(page: Tab, email: str, password: str) -> None:
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
     page = await browser.get(
         "https://cdpdriver.github.io/examples/login-page.html",
     )

@@ -63,6 +63,7 @@ class Browser:
 
     config: Config
     connection: Connection | None
+    _proxy_auth: dict[str, str] | None = None
 
     @classmethod
     async def create(
@@ -130,6 +131,11 @@ class Browser:
         # each instance gets it's own copy so this class gets a copy that it can
         # use to help manage the browser instance data (needed for multiple browsers)
         self.config = copy.deepcopy(config)
+        # cache proxy auth credentials (if any) for use by tabs
+        try:
+            self._proxy_auth = self.config.get_proxy_auth()
+        except Exception:
+            self._proxy_auth = None
 
         self.targets: List[Connection] = []
         """current targets (all types)"""
@@ -255,7 +261,7 @@ class Browser:
                 self.targets.remove(current_tab)
 
     async def get(
-        self, url: str = "about:blank", new_tab: bool = False, new_window: bool = False
+        self, url: str = "about:blank", new_tab: bool = False, new_window: bool = False, timeout: Union[int, float] = 10
     ) -> tab.Tab:
         """top level get. utilizes the first tab to retrieve given url.
 
@@ -266,6 +272,7 @@ class Browser:
         :param url: the url to navigate to
         :param new_tab: open new tab
         :param new_window:  open new window
+        :param timeout: timeout in seconds for navigation
         :return: Page
         :raises: asyncio.TimeoutError
         """
@@ -288,10 +295,10 @@ class Browser:
         self.connection.add_handler(event_type, get_handler)
 
         if new_tab or new_window:
-            # create new target using the browser session
+            # Create a new blank target first so we can attach auth before navigation
             target_id = await self.connection.send(
                 cdp.target.create_target(
-                    url, new_window=new_window, enable_begin_frame_control=True
+                    "about:blank", new_window=new_window, enable_begin_frame_control=True
                 )
             )
             # get the connection matching the new target_id from our inventory
@@ -302,14 +309,26 @@ class Browser:
                 )
             )  # type: ignore
             connection.browser = self
+            
+            # Setup proxy auth if needed
+            if self._proxy_auth:
+                await self.setup_proxy_auth(connection)
+            
+            # Now navigate to the requested URL
+            await connection.send(cdp.page.navigate(url))
         else:
             # first tab from browser.tabs
             connection = next(filter(lambda item: item.type_ == "page", self.targets))  # type: ignore
+            connection.browser = self
+            
+            # Setup proxy auth if needed and we're not already on about:blank
+            if self._proxy_auth:
+                await self.setup_proxy_auth(connection)
+            
             # use the tab to navigate to new url
             await connection.send(cdp.page.navigate(url))
-            connection.browser = self
 
-        await asyncio.wait_for(future, 10)
+        await asyncio.wait_for(future, timeout)
         self.connection.remove_handlers(event_type, get_handler)
 
         return connection
@@ -436,48 +455,70 @@ class Browser:
             ]
             await self.connection.send(cdp.target.set_discover_targets(discover=True))
         await self.update_targets()
+        
+        # Setup proxy auth on existing tabs if credentials provided
+        if self._proxy_auth:
+            for t in self.tabs:
+                await self.setup_proxy_auth(t)
+        
         return self
 
     async def test_connection(self) -> bool:
-        if not self._http:
-            raise ValueError("HTTPApi not yet initialized")
-
+        """Probe the remote debugging HTTP endpoint and cache the /json/version info."""
         try:
-            self.info = ContraDict(await self._http.get("version"), silent=True)
+            if not self._http:
+                return False
+            data = await self._http.get("version")
+            self.info = ContraDict(data, silent=True)
             return True
         except Exception:
-            logger.debug("Could not start", exc_info=True)
             return False
+
+    async def setup_proxy_auth(self, tab_connection: Connection) -> None:
+        """Set up proxy authentication for a tab using CDP Fetch."""
+        if not self._proxy_auth:
+            return
+        if getattr(tab_connection, "_proxy_auth_enabled", False):
+            return
+
+        username = self._proxy_auth["username"]
+        password = self._proxy_auth["password"]
+
+        async def auth_challenge_handler(event: cdp.fetch.AuthRequired) -> None:
+            asyncio.create_task(
+                tab_connection.send(
+                    cdp.fetch.continue_with_auth(
+                        request_id=event.request_id,
+                        auth_challenge_response=cdp.fetch.AuthChallengeResponse(
+                            response="ProvideCredentials",
+                            username=username,
+                            password=password,
+                        ),
+                    )
+                )
+            )
+        
+        async def req_paused(event: cdp.fetch.RequestPaused) -> None:
+            asyncio.create_task(
+                tab_connection.send(
+                    cdp.fetch.continue_request(request_id=event.request_id)
+                )
+            )
+
+        try:
+            if not hasattr(tab_connection, "_proxy_auth_handler_added"):
+                tab_connection.add_handler(cdp.fetch.AuthRequired, auth_challenge_handler)
+                tab_connection.add_handler(cdp.fetch.RequestPaused, req_paused)
+                setattr(tab_connection, "_proxy_auth_handler_added", True)
+            
+            await tab_connection.send(cdp.fetch.enable(handle_auth_requests=True))
+            setattr(tab_connection, "_proxy_auth_enabled", True)
+        except Exception as e:
+            logger.warning(f"[Proxy] Failed to set up CDP auth handler: {e}")
 
     async def grant_all_permissions(self) -> None:
         """
-        grant permissions for:
-            accessibilityEvents
-            audioCapture
-            backgroundSync
-            backgroundFetch
-            clipboardReadWrite
-            clipboardSanitizedWrite
-            displayCapture
-            durableStorage
-            geolocation
-            idleDetection
-            localFonts
-            midi
-            midiSysex
-            nfc
-            notifications
-            paymentHandler
-            periodicBackgroundSync
-            protectedMediaIdentifier
-            sensors
-            storageAccess
-            topLevelStorageAccess
-            videoCapture
-            videoCapturePanTiltZoom
-            wakeLockScreen
-            wakeLockSystem
-            windowManagement
+        grant permissions for many browser capabilities.
         """
         if not self.connection:
             raise RuntimeError("Browser not yet started. use await browser.start()")
@@ -561,17 +602,16 @@ class Browser:
                     existing_tab.target.__dict__.update(t.__dict__)
                     break
             else:
-                self.targets.append(
-                    Connection(
-                        (
-                            f"ws://{self.config.host}:{self.config.port}"
-                            f"/devtools/page"  # all types are 'page' somehow
-                            f"/{t.target_id}"
-                        ),
-                        target=t,
-                        _owner=self,
-                    )
+                new_connection = Connection(
+                    (
+                        f"ws://{self.config.host}:{self.config.port}"
+                        f"/devtools/page"  # all types are 'page' somehow
+                        f"/{t.target_id}"
+                    ),
+                    target=t,
+                    _owner=self,
                 )
+                self.targets.append(new_connection)
 
         await asyncio.sleep(0)
 

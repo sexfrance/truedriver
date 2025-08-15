@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CDP proxy authentication stability** - Fixed indefinite loading and hanging issues with authenticated proxies
+  - Resolved WebSocket concurrency errors using connection locks
+  - Fixed `evaluate()` method parameter error (`execution_context_id` → `context_id`)
+  - Improved error handling and timeout support in navigation methods
+  - Cleaned up redundant code and debug logging
+
 ### Added
 
 - **Full iframe support** - Added comprehensive iframe switching functionality to interact with embedded content
+
   - `Tab.get_frames()` - Get all frames in the current page
   - `Tab.find_frame_by_url(pattern)` - Find frames by URL pattern (supports regex)
   - `Tab.find_frame_by_name(name)` - Find frames by name attribute
@@ -23,14 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modified `Tab.evaluate()` to execute JavaScript in the current frame context
   - Updated DOM querying methods to work correctly with frame switching
 
-- **Simple proxy support** - Added easy-to-use proxy functionality with multiple configuration formats
+- **Enhanced proxy support** - Improved proxy functionality with automatic CDP authentication
+
   - `proxy` parameter in `start()` function and `Config` class
   - Support for simple format: `"ip:port"` or `"http://ip:port"`
   - Support for authenticated format: `"user:pass@ip:port"` or `"http://user:pass@ip:port"`
   - Support for dict format: `{"server": "ip:port", "username": "user", "password": "pass"}`
-  - URL-based authentication (like Playwright) for maximum compatibility
-  - Works reliably with Chrome, Brave, and Edge browsers
-  - No complex CDP authentication handlers required
+  - **Automatic CDP authentication** - Credentials are automatically stripped from proxy URL and handled via Chrome DevTools Protocol
+  - **Non-blocking authentication handlers** - Uses `asyncio.create_task` pattern to prevent request blocking
+  - **Comprehensive event handling** - Handles both `AuthRequired` and `RequestPaused` events for maximum compatibility
+  - **Timeout support** - Added timeout parameters to `browser.get()` and `tab.get()` methods
+  - Works reliably with Chrome, Brave, and Edge browsers without hanging
 
 - **Enhanced undetection** - Improved stealth capabilities and bot detection evasion
   - Better fingerprint randomization

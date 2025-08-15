@@ -1,10 +1,10 @@
-import truedriver as zd
+import truedriver as td
 
 from tests.sample_data import sample_file
 from truedriver import SpecialKeys, KeyModifiers, KeyEvents
 
 
-async def test_visible_events(browser: zd.Browser) -> None:
+async def test_visible_events(browser: td.Browser) -> None:
     """Test keyboard events with contenteditable div."""
     # Open the page
     main_page = await browser.get(sample_file("simple_editor.html"))
@@ -43,7 +43,7 @@ async def test_visible_events(browser: zd.Browser) -> None:
         assert actual_html == expected, f"Expected '{expected}', got '{actual_html}'"
 
 
-async def test_escape_key_popup(browser: zd.Browser) -> None:
+async def test_escape_key_popup(browser: td.Browser) -> None:
     """Test escape key functionality to close a popup."""
     main_page = await browser.get(sample_file("special_key_detector.html"))
 

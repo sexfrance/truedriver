@@ -2,13 +2,13 @@ import asyncio
 import base64
 import os
 
-import truedriver as zd
+import truedriver as td
 
 
 async def main() -> None:
     path_image = r"Your Image Path"
     out_dir = r"."
-    async with await zd.start() as browser:
+    async with await td.start() as browser:
         page = browser.main_tab
         await page.get("https://translate.yandex.com/en/ocr")
         await (await page.select('input[type="file"]')).send_file(path_image)

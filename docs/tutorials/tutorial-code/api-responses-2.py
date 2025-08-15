@@ -1,12 +1,12 @@
 import asyncio
 import json
 
-import truedriver as zd
+import truedriver as td
 from truedriver.cdp.network import get_response_body
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
 
     page = browser.tabs[0]
     async with page.expect_response(".*/user-data.json") as response_expectation:

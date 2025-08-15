@@ -1,10 +1,10 @@
 import asyncio
 
-import truedriver as zd
+import truedriver as td
 
 
 async def main() -> None:
-    browser = await zd.start()
+    browser = await td.start()
     tab = browser.main_tab
     await tab.set_user_agent("My user agent", accept_language="de", platform="Win32")
 
